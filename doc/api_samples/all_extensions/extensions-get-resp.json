@@ -663,6 +663,33 @@
             "name": "ConsoleAuthTokens",
             "namespace": "http://docs.openstack.org/compute/ext/consoles-auth-tokens/api/v2",
             "updated": "2013-08-13T00:00:00+00:00"
+        },
+        {
+            "alias": "os-psvm",
+            "description": "Admin-only psvm administration.",
+            "links": [],
+            "name": "Psvm",
+            "namespace": "http://docs.openstack.org/compute/ext/psvm/api/v1.1",
+            "updated": "2013-08-13T00:00:00+00:00"
+        },
+        {
+            "alias": "os-psvmcred",
+            "description": "Admin-only psvmcred administration.",
+            "links": [],
+            "name": "Psvmcred",
+            "namespace": "http://docs.openstack.org/compute/ext/psvmcred/api/v1.1",
+            "updated": "2013-08-13T00:00:00+00:00"
+        },
+        {
+            "alias": "os-psvmpbind",
+            "description": "Admin-only psvmpbind administration.",
+            "links": [],
+            "name": "Psvmpbind",
+            "namespace": "http://docs.openstack.org/compute/ext/psvmpbind/api/v1.1",
+            "updated": "2013-08-13T00:00:00+00:00"
         }
+
+
+
     ]
 }

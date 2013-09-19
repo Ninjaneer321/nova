@@ -119,6 +119,9 @@ class LinuxNetL3(L3Driver):
         linux_net.remove_floating_forward(floating_ip, fixed_ip,
                                           l3_interface_id, network)
 
+    def sync_physical_network(self):
+        linux_net.sync_physical_network()
+
     def add_vpn(self, public_ip, port, private_ip):
         linux_net.ensure_vpn_forward(public_ip, port, private_ip)
 

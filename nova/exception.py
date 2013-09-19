@@ -638,6 +638,43 @@ class ExternalNetworkAttachForbidden(NotAuthorized):
                 "external network %(network_uuid)s")
 
 
+class NoPSVMSwitchesFound(NotFound):
+    msg_fmt = _("No switches defined.")
+
+
+class PSVMSwitchNotFound(NotFound):
+    msg_fmt = _("Switch %(id)s could not be found.")
+
+
+class NoPSVMSwitchportBindingsFound(NotFound):
+    msg_fmt = _("No switchport bindings defined.")
+
+
+class PSVMSwitchportBindingNotFound(NotFound):
+    msg_fmt = _("Switchport Binding %(id)s could not be found.")
+
+
+class NoPSVMSwitchCredsFound(NotFound):
+    msg_fmt = _("No switch credentials defined.")
+
+
+class PSVMSwitchCredNotFound(NotFound):
+    msg_fmt = _("Switch credential %(id)s could not be found.")
+
+
+class PSVMVlanNotOnSwitch(NotFound):
+    msg_fmt = _("VLAN %(vlan_id)s not configured on switch")
+
+
+class PSVMVlanNotOnInterface(NotFound):
+    msg_fmt = _("VLAN %(vlan_id)s not configured on switch interface\
+                %(interface)s")
+
+
+class PhysicalSwitchVlanManagerError(NovaException):
+    msg_fmt = _("Failed to connect to and provision the switch. %s")
+
+
 class DatastoreNotFound(NotFound):
     msg_fmt = _("Could not find the datastore reference(s) which the VM uses.")
 

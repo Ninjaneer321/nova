@@ -1,3 +1,5 @@
+# Copyright 2011 Cisco Systems, Inc.  All rights reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -9,18 +11,5 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-# This is a placeholder for Havana backports.
-# Do not use this number for new Icehouse work.  New Icehouse work starts after
-# all the placeholders.
 #
-# See blueprint backportable-db-migrations-icehouse
-# http://lists.openstack.org/pipermail/openstack-dev/2013-March/006827.html
-
-
-def upgrade(migrate_engine):
-    pass
-
-
-def downgrade(migration_engine):
-    pass
+#    Sumit Naiksatam, Cisco Systems, Inc.

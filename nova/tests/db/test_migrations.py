@@ -607,6 +607,53 @@ class TestNovaMigrations(BaseWalkMigrationTestCase, CommonTestsMixIn):
 
         self.assertEqual(sorted(members), sorted(index_columns))
 
+    def _check_226(self, engine, data):
+        self.assertColumnExists(engine, 'psvm_switch_credential', 'id')
+        self.assertColumnExists(engine, 'psvm_switch_credential', 'user_name')
+        self.assertColumnExists(engine, 'psvm_switch_credential', 'password')
+        psvm_switch_credential = db_utils.get_table(engine,
+                                                    'psvm_switch_credential')
+        self.assertIsInstance(psvm_switch_credential.c.id.type,
+                              sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switch_credential.c.user_name.type,
+                              sqlalchemy.types.String)
+        self.assertIsInstance(psvm_switch_credential.c.password.type,
+                              sqlalchemy.types.String)
+
+        self.assertColumnExists(engine, 'psvm_switch', 'id')
+        self.assertColumnExists(engine, 'psvm_switch', 'ip')
+        self.assertColumnExists(engine, 'psvm_switch', 'num_connections')
+        self.assertColumnExists(engine, 'psvm_switch', 'switch_cred_id')
+        psvm_switch = db_utils.get_table(engine, 'psvm_switch')
+        self.assertIsInstance(psvm_switch.c.id.type, sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switch.c.ip.type, sqlalchemy.types.String)
+        self.assertIsInstance(psvm_switch.c.num_connections.type,
+                              sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switch.c.switch_cred_id.type,
+                              sqlalchemy.types.Integer)
+
+        self.assertColumnExists(engine, 'psvm_switchport_binding', 'id')
+        self.assertColumnExists(engine, 'psvm_switchport_binding', 'switch_id')
+        self.assertColumnExists(engine, 'psvm_switchport_binding',
+                                'compute_node_id')
+        self.assertColumnExists(engine, 'psvm_switchport_binding',
+                                'switch_port')
+        psvm_switchport_binding = db_utils.get_table(engine,
+                                                     'psvm_switchport_binding')
+        self.assertIsInstance(psvm_switchport_binding.c.id.type,
+                              sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switchport_binding.c.switch_id.type,
+                              sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switchport_binding.c.compute_node_id.type,
+                              sqlalchemy.types.Integer)
+        self.assertIsInstance(psvm_switchport_binding.c.switch_port.type,
+                              sqlalchemy.types.String)
+
+    def _post_downgrade_226(self, engine):
+        self.assertTableNotExists(engine, 'psvm_switch_credential')
+        self.assertTableNotExists(engine, 'psvm_switch')
+        self.assertTableNotExists(engine, 'psvm_switchport_binding')
+
     def _check_227(self, engine, data):
         table = db_utils.get_table(engine, 'project_user_quotas')
 

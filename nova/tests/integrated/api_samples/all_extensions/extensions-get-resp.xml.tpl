@@ -248,4 +248,13 @@
   <extension alias="os-server-groups" updated="%(timestamp)s" namespace="http://docs.openstack.org/compute/ext/servergroups/api/v2" name="ServerGroups">
     <description>%(text)s</description>
   </extension>
+  <extension alias="os-psvm" updated="%(timestamp)s" namespace="http://docs.openstack.org/compute/ext/psvm/api/v1.1" name="Psvm">
+    <description>%(text)s</description>
+  </extension>
+  <extension alias="os-psvmcred" updated="%(timestamp)s" namespace="http://docs.openstack.org/compute/ext/psvmcred/api/v1.1" name="Psvmcred">
+    <description>%(text)s</description>
+  </extension>
+  <extension alias="os-psvmpbind" updated="%(timestamp)s" namespace="http://docs.openstack.org/compute/ext/psvmpbind/api/v1.1" name="Psvmpbind">
+    <description>%(text)s</description>
+  </extension>
 </extensions>

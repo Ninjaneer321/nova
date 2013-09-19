@@ -161,6 +161,14 @@ network_opts = [
     cfg.StrOpt('l3_lib',
                default='nova.network.l3.LinuxNetL3',
                help="Indicates underlying L3 management library"),
+    cfg.BoolOpt('psvm',
+                default=False,
+                help='Enable the Physcial Switch Vlan Manager module to '
+                     'automatically prune VLANs on the switchports'
+                     'This is to be used with VlanManager in multi-host mode'),
+    cfg.IntOpt('psvm_sync_interval',
+               default=60,
+               help='Number of seconds to wait between runs of PSVM sync'),
     ]
 
 CONF = cfg.CONF
@@ -978,6 +986,8 @@ class NetworkManager(manager.Manager):
             else:
                 # We can't try to free the IP address so just call teardown
                 self._teardown_network_on_host(context, network)
+
+            self._teardown_network_on_host(context, network)
 
         # Commit the reservations
         quotas.commit(context)
@@ -1924,6 +1934,14 @@ class VlanManager(RPCAllocateFixedIP, floating_ips.FloatingIP, NetworkManager):
                     fip.save()
             else:
                 self.driver.update_dhcp(elevated, dev, network)
+
+    @periodic_task.periodic_task(spacing=CONF.psvm_sync_interval,
+                                 run_immediately=True)
+    def _sync_physical_network(self, context):
+        if not CONF.psvm:
+            return
+        LOG.debug(_("PSVM: syncing with physical network"))
+        self.l3driver.sync_physical_network()
 
     def _get_network_dict(self, network):
         """Returns the dict representing necessary and meta network fields."""

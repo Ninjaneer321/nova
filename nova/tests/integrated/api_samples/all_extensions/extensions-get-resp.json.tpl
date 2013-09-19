@@ -663,6 +663,33 @@
             "name": "ServerGroups",
             "namespace": "http://docs.openstack.org/compute/ext/servergroups/api/v2",
             "updated": "%(timestamp)s"
+        },
+        {
+            "alias": "os-psvm",
+            "description": "%(text)s",
+            "links": [],
+            "name": "Psvm",
+            "namespace": "http://docs.openstack.org/compute/ext/psvm/api/v1.1",
+            "updated": "%(timestamp)s"
+        },
+        {
+            "alias": "os-psvmcred",
+            "description": "%(text)s",
+            "links": [],
+            "name": "Psvmcred",
+            "namespace": "http://docs.openstack.org/compute/ext/psvmcred/api/v1.1",
+            "updated": "%(timestamp)s"
+        },
+        {
+            "alias": "os-psvmpbind",
+            "description": "%(text)s",
+            "links": [],
+            "name": "Psvmpbind",
+            "namespace": "http://docs.openstack.org/compute/ext/psvmpbind/api/v1.1",
+            "updated": "%(timestamp)s"
         }
+
+
+
     ]
 }

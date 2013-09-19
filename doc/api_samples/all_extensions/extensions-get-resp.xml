@@ -267,6 +267,15 @@
     <description>Services deletion support.</description>
   </extension>
   <extension alias="os-console-auth-tokens" updated="2013-08-13T00:00:00+00:00" namespace="http://docs.openstack.org/compute/ext/consoles-auth-tokens/api/v2" name="ConsoleAuthTokens">
+    <description>Admin-only psvm administration.</description>
+  </extension>
+  <extension alias="os-psvm" updated="2013-08-13T00:00:00+00:00" namespace="http://docs.openstack.org/compute/ext/psvm/api/v1.1" name="Psvm">
+    <description>Admin-only psvmcred administration.</description>
+  </extension>
+  <extension alias="os-psvmcred" updated="2013-08-13T00:00:00+00:00" namespace="http://docs.openstack.org/compute/ext/psvmcred/api/v1.1" name="Psvmcred">
+    <description>Admin-only psvmpbind administration.</description>
+  </extension>
+  <extension alias="os-psvmpbind" updated="2013-08-13T00:00:00+00:00" namespace="http://docs.openstack.org/compute/ext/psvmpbind/api/v1.1" name="Psvmpbind">
     <description>Console token authentication support.</description>
   </extension>
 </extensions>

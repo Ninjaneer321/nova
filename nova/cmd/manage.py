@@ -1242,6 +1242,316 @@ class CellCommands(object):
                 '-' * 5, '-' * 10))
 
 
+class SwitchCommands(object):
+    """Class for mangaging physical switches."""
+
+    @args('--ip', dest="ip", metavar='<ip>', help='switch IP address')
+    @args('--cred', dest="switch_cred_id", metavar='<credential id>',
+          help='switch credential id')
+    def switch_create(self, ip, switch_cred_id):
+        """Creates a new switch."""
+        try:
+            db.switch_create(context.get_admin_context(),
+                             dict(ip=ip,
+                                  switch_cred_id=switch_cred_id))
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_id>', help='switch id')
+    @args('--ip', dest="ip", metavar='<ip>', help='switch IP address')
+    @args('--cred', dest="switch_cred_id", metavar='<credential id>',
+          help='switch credential id')
+    def switch_update(self, id, ip=None, switch_cred_id=None):
+        """Updates the ip, cred_id for specified switch."""
+        kwargs = dict(((k, v) for k, v in locals().iteritems()
+                       if k != "self"))
+        cxt = context.get_admin_context()
+        try:
+            switch = db.switch_get(cxt, id)
+            for key, value in kwargs.iteritems():
+                if not value:
+                    kwargs[key] = switch[key]
+            db.switch_update(cxt, id, kwargs)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_id>', help='switch id')
+    @args('--deleted', dest="deleted", action="store_true",
+          help='show deleted records')
+    def switch_get(self, id=None, deleted=None):
+        """Lists all switches or optionally a specified one."""
+        ctxt = context.get_admin_context()
+        try:
+            if deleted:
+                switches = db.switch_get_deleted(ctxt)
+                self._print_switch(switches)
+            elif id is None:
+                switches = db.switch_get_all(ctxt)
+                self._print_switch(switches)
+            else:
+                switches = db.switch_get(ctxt, id)
+                self._print_switch(switches, single=True)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_id>', help='switch id')
+    def switch_delete(self, id):
+        """Deletes specified switch."""
+        ctxt = context.get_admin_context()
+        try:
+            db.switch_delete(ctxt, id)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    def _print_switch(self, switches, single=False):
+        _fmt = "%-5s\t%-15s\t%-10s"
+        print(_fmt % (_('id'),
+                      _('ip'),
+                      _('cred_id')))
+        if single:
+            print(_fmt % (switches.id,
+                          switches.ip,
+                          switches.switch_cred_id))
+        else:
+            for switch in switches:
+                print(_fmt % (switch.id,
+                              switch.ip,
+                              switch.switch_cred_id))
+
+    @args('--username', dest="user_name", metavar='<username>',
+          help='username')
+    @args('--password', dest="password", metavar='<password>',
+          help='password')
+    def switch_cred_create(self, user_name, password):
+        """Creates a new set of switch credentials."""
+        try:
+            db.switch_cred_create(context.get_admin_context(),
+                                  dict(user_name=user_name,
+                                       password=password))
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_cred_id>',
+          help='switch_cred id')
+    @args('--username', dest="user_name", metavar='<username>',
+          help='username')
+    @args('--password', dest="password", metavar='<password>',
+          help='password')
+    def switch_cred_update(self, id, user_name=None, password=None):
+        """Updates the username or password for specified credential set."""
+        kwargs = dict(((k, v) for k, v in locals().iteritems()
+                       if k != "self"))
+        cxt = context.get_admin_context()
+        try:
+            switch_cred = db.switch_cred_get(cxt, id)
+            for key, value in kwargs.iteritems():
+                if not value:
+                    kwargs[key] = switch_cred[key]
+            db.switch_cred_update(cxt, id, kwargs)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_cred_id>', help='switch_cred id')
+    @args('--deleted', dest="deleted", action="store_true",
+          help='show deleted records')
+    def switch_cred_get(self, id=None, deleted=None):
+        """Lists all switches or optionally a specified one."""
+        ctxt = context.get_admin_context()
+        try:
+            if deleted:
+                switch_creds = db.switch_cred_get_deleted(ctxt)
+                self._print_switch_cred(switch_creds)
+            elif id is None:
+                switch_creds = db.switch_cred_get_all(ctxt)
+                self._print_switch_cred(switch_creds)
+            else:
+                switch_creds = db.switch_cred_get(ctxt, id)
+                self._print_switch_cred(switch_creds, single=True)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switch_cred_id>', help='switch_cred id')
+    def switch_cred_delete(self, id):
+        """Deletes specified switch."""
+        ctxt = context.get_admin_context()
+        try:
+            db.switch_cred_delete(ctxt, id)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    def _print_switch_cred(self, switch_creds, single=False):
+        _fmt = "%-5s\t%-15s\t%-15s"
+        print(_fmt % (_('id'),
+                      _('user_name'),
+                      _('password')))
+        if single:
+            print(_fmt % (switch_creds.id,
+                          switch_creds.user_name,
+                          '************'))
+        else:
+            for switch_cred in switch_creds:
+                print(_fmt % (switch_cred.id,
+                              switch_cred.user_name,
+                              '************'))
+
+    @args('--switch_id', dest="switch_id", metavar='<switch_id>',
+          help='switch id')
+    @args('--compute_node_id', dest="compute_node_id",
+          metavar='<compute_node_id>', help='compute node id')
+    @args('--switch_port', dest="switch_port", metavar='<switch_port>',
+          help='switchport')
+    def switchport_bind_create(self, switch_id, compute_node_id, switch_port):
+        """Creates a new binding for compute host to switchport."""
+        try:
+            db.switchport_binding_create(context.get_admin_context(),
+                                         dict(switch_id=switch_id,
+                                              compute_node_id=compute_node_id,
+                                              switch_port=switch_port))
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<id>', help='switchport binding id')
+    @args('--switch_port', dest="switch_port", metavar='<switch_port>',
+          help='switchport')
+    def switchport_bind_update(self, id, switch_port):
+        """Updates the switchport for a switch/compute host combination."""
+        kwargs = dict(((k, v) for k, v in locals().iteritems()
+                       if k != "self"))
+        cxt = context.get_admin_context()
+        try:
+            switchport_binding = db.switchport_binding_get(cxt, id)
+            for key, value in kwargs.iteritems():
+                if not value:
+                    kwargs[key] = switchport_binding[key]
+            db.switchport_binding_update(cxt, id, kwargs)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switchport_binding_id>',
+          help='switchport binding id')
+    @args('--deleted', dest="deleted", action="store_true",
+          help='show deleted records')
+    def switchport_bind_get(self, id=None, deleted=None):
+        """Lists all switchport bindings or optionally a specified one."""
+        ctxt = context.get_admin_context()
+        try:
+            if deleted:
+                switchport_bindings = db.switchport_binding_get_deleted(ctxt)
+                self._print_switchport_binding(switchport_bindings)
+            elif id is None:
+                switchport_bindings = db.switchport_binding_get_all(ctxt)
+                self._print_switchport_binding(switchport_bindings)
+            else:
+                switchport_bindings = db.switchport_binding_get(ctxt, id)
+                self._print_switchport_binding(switchport_bindings,
+                                               single=True)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    @args('--id', dest="id", metavar='<switchport_binding_id>',
+          help='switchport binding id')
+    def switchport_bind_delete(self, id):
+        """Deletes specified switchport binding."""
+        ctxt = context.get_admin_context()
+        try:
+            db.switchport_binding_delete(ctxt, id)
+        except exception.NotFound as ex:
+            print(_("error: %s") % ex)
+            sys.exit(2)
+        except db_exc.DBError as e:
+            print(_("DB Error: %s") % e)
+            sys.exit(1)
+        except Exception:
+            print(_("Unexpected Error:"))
+            raise
+
+    def _print_switchport_binding(self, switchport_bindings, single=False):
+        _fmt = "%-5s\t%-15s\t%-15s\t%-15s"
+        print(_fmt % (_('id'),
+                      _('switch_id'),
+                      _('compute_node_id'),
+                      _('switch_port')))
+        if single:
+            print(_fmt % (switchport_bindings.id,
+                          switchport_bindings.switch_id,
+                          switchport_bindings.compute_node_id,
+                          switchport_bindings.switch_port))
+        else:
+            for switchport_binding in switchport_bindings:
+                print(_fmt % (switchport_binding.id,
+                              switchport_binding.switch_id,
+                              switchport_binding.compute_node_id,
+                              switchport_binding.switch_port))
+
+
 CATEGORIES = {
     'account': AccountCommands,
     'agent': AgentBuildCommands,
@@ -1256,6 +1566,7 @@ CATEGORIES = {
     'project': ProjectCommands,
     'service': ServiceCommands,
     'shell': ShellCommands,
+    'switch': SwitchCommands,
     'vm': VmCommands,
     'vpn': VpnCommands,
 }

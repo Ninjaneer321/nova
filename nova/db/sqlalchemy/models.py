@@ -744,6 +744,50 @@ class Migration(BASE, NovaBase):
                                         '0)')
 
 
+class PSVMSwitchCred(BASE, NovaBase):
+    """Used to track the physical switch credentials."""
+    __tablename__ = "psvm_switch_credential"
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    user_name = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=False)
+
+
+class PSVMSwitchBind(BASE, NovaBase):
+    """Represents a physical conn between a switchport and compute host."""
+    __tablename__ = 'psvm_switchport_binding'
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    switch_id = Column(Integer, ForeignKey('psvm_switch.id'),
+                       nullable=False)
+    compute_node_id = Column(Integer, nullable=True)
+    switch_port = Column(String(255), nullable=True)
+
+    switch = relationship("PSVMSwitch",
+                          backref="psvm_switchport_bindings",
+                          foreign_keys=switch_id,
+                          primaryjoin='and_('
+                          'PSVMSwitchBind.switch_id == PSVMSwitch.id,'
+                          'PSVMSwitchBind.deleted == False,'
+                          'PSVMSwitch.deleted == False)')
+
+
+class PSVMSwitch(BASE, NovaBase):
+    """Represents a physical switch."""
+    __tablename__ = 'psvm_switch'
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    ip = Column(String(255), nullable=False, unique=True)
+    num_connections = Column(Integer, nullable=False, default=0)
+    switch_cred_id = Column(Integer, ForeignKey('psvm_switch_credential.id'),
+                            nullable=False)
+    switch_cred =\
+        relationship("PSVMSwitchCred",
+                     backref="psvm_switches",
+                     foreign_keys=switch_cred_id,
+                     primaryjoin='and_('
+                     'PSVMSwitch.switch_cred_id == PSVMSwitchCred.id,'
+                     'PSVMSwitch.deleted == False,'
+                     'PSVMSwitchCred.deleted == False)')
+
+
 class Network(BASE, NovaBase):
     """Represents a network."""
     __tablename__ = 'networks'

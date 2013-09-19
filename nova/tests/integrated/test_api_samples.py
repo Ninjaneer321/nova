@@ -4252,3 +4252,164 @@ class ServerGroupsSampleJsonTest(ServersSampleBase):
 
 class ServerGroupsSampleXmlTest(ServerGroupsSampleJsonTest):
     ctype = 'xml'
+
+
+class PsvmcredSampleJsonTest(ServersSampleBase):
+    extension_name = "nova.api.openstack.compute.contrib.psvmcred.Psvmcred"
+
+    def test_psvmcred_create(self):
+        response = self._do_post('os-psvmcred', 'psvmcred-post-req', {})
+        subs = {"psvmcred_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        return self._verify_response('psvmcred-post-resp',
+                                     subs, response, 200)
+
+    def test_psvmcred_list(self):
+        self.test_psvmcred_create()
+        response = self._do_get('os-psvmcred')
+        subs = self._get_regexes()
+        self._verify_response('psvmcred-list-get-resp', subs, response, 200)
+
+    def test_psvmcred_get(self):
+        psvmcred_id = self.test_psvmcred_create()
+        response = self._do_get('os-psvmcred/%s' % psvmcred_id)
+        subs = self._get_regexes()
+        self._verify_response('psvmcred-get-resp', subs, response, 200)
+
+    def test_psvmcred_update(self):
+        subs = {"psvmcred_id": '(?P<id>\d+)'}
+        psvmcred_id = self.test_psvmcred_create()
+        response = self._do_put('os-psvmcred/%s' % psvmcred_id,
+                                'psvmcred-update-post-req', subs)
+        subs.update(self._get_regexes())
+        self._verify_response('psvmcred-update-post-resp',
+                              subs, response, 200)
+
+    def test_psvmcred_delete(self):
+        psvmcred_id = self.test_psvmcred_create()
+        response = self._do_delete('os-psvmcred/%s' % psvmcred_id)
+        self.assertEqual(response.status, 200)
+
+
+class PsvmcredSampleXmlTest(PsvmcredSampleJsonTest):
+    ctype = 'xml'
+
+
+class PsvmSampleJsonTest(ServersSampleBase):
+    extension_name = "nova.api.openstack.compute.contrib.psvm.Psvm"
+
+    def setUp(self):
+        super(PsvmSampleJsonTest, self).setUp()
+
+        def fake_switch_cred_get(context):
+            psvmcred = dict(id=1,
+                            user_name='test_name',
+                            password='test_password')
+            return {'psvmcred': [psvmcred]}
+        self.stubs.Set(db, "switch_cred_get", fake_switch_cred_get)
+
+    def test_psvm_create(self):
+        response = self._do_post('os-psvm', 'psvm-post-req', {})
+        subs = {"psvm_id": '(?P<id>\d+)',
+                "psvmcred_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        return self._verify_response('psvm-post-resp',
+                                     subs, response, 200)
+
+    def test_psvm_list(self):
+        self.test_psvm_create()
+        response = self._do_get('os-psvm')
+        subs = {"psvm_id": '(?P<id>\d+)',
+                "psvmcred_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvm-list-get-resp', subs, response, 200)
+
+    def test_psvm_get(self):
+        psvm_id = self.test_psvm_create()
+        response = self._do_get('os-psvm/%s' % psvm_id)
+        subs = {"psvm_id": '(?P<id>\d+)',
+                "psvmcred_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvm-get-resp', subs, response, 200)
+
+    def test_psvm_switch_ip_update(self):
+        psvm_id = self.test_psvm_create()
+        response = self._do_put('os-psvm/%s' % psvm_id,
+                                'psvm-update-post-req', {})
+        subs = {"psvm_id": '(?P<id>\d+)',
+                "psvmcred_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvm-update-post-resp',
+                              subs, response, 200)
+
+    def test_psvm_delete(self):
+        psvm_id = self.test_psvm_create()
+        response = self._do_delete('os-psvm/%s' % psvm_id)
+        self.assertEqual(response.status, 200)
+
+
+class PsvmSampleXmlTest(PsvmSampleJsonTest):
+    ctype = 'xml'
+
+
+class PsvmpbindSampleJsonTest(ServersSampleBase):
+    extension_name = "nova.api.openstack.compute.contrib.psvmpbind.Psvmpbind"
+
+    def setUp(self):
+        super(PsvmpbindSampleJsonTest, self).setUp()
+
+        def fake_compute_node_get(context):
+            compute_node = dict(id=1)
+            return {'compute_node': [compute_node]}
+        self.stubs.Set(db, "compute_node_get", fake_compute_node_get)
+
+    def test_psvmpbind_create(self):
+        response = self._do_post('os-psvmpbind', 'psvmpbind-post-req', {})
+        subs = {"compute_node_id": '(\d+)',
+                "switch_id": '(\d+)',
+                "switch_port": '(e[0-9]{3}/[0-9]/[0-9])',
+                "psvmpbind_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        return self._verify_response('psvmpbind-post-resp',
+                                     subs, response, 200)
+
+    def test_psvmpbind_list(self):
+        self.test_psvmpbind_create()
+        response = self._do_get('os-psvmpbind')
+        subs = {"compute_node_id": '(?P<id>\d+)',
+                "psvmpbind_id": '(?P<id>\d+)',
+                "switch_id": '(?P<id>\d+)',
+                "switch_port": '(?P<id>e[0-9]{3}/[0-9]/[0-9])'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvmpbind-list-get-resp', subs, response, 200)
+
+    def test_psvmpbind_get(self):
+        pbind_id = self.test_psvmpbind_create()
+        response = self._do_get('os-psvmpbind/%s' % 1)
+        subs = {"compute_node_id": '(\d+)',
+                "switch_id": '(\d+)',
+                "switch_port": '(e[0-9]{3}/[0-9]/[0-9])',
+                "psvmpbind_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvmpbind-get-resp', subs, response, 200)
+
+    def test_psvmpbind_update(self):
+        self.test_psvmpbind_create()
+        response = self._do_put('os-psvmpbind/%s' % 1,
+                                'psvmpbind-update-post-req', {})
+        subs = {"compute_node_id": '(\d+)',
+                "switch_id": '(\d+)',
+                "switch_port": '(e[0-9]{3}/[0-9]/[0-9])',
+                "psvmpbind_id": '(?P<id>\d+)'}
+        subs.update(self._get_regexes())
+        self._verify_response('psvmpbind-update-post-resp',
+                              subs, response, 200)
+
+    def test_psvmpbind_delete(self):
+        self.test_psvmpbind_create()
+        response = self._do_delete('os-psvmpbind/%s' % 1)
+        self.assertEqual(response.status, 200)
+
+
+class PsvmpbindSampleXmlTest(PsvmpbindSampleJsonTest):
+    ctype = 'xml'

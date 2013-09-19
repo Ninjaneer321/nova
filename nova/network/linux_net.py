@@ -27,6 +27,7 @@ from oslo.config import cfg
 import six
 
 from nova import exception
+from nova.network import physical_switch_vlan_manager as psvm
 from nova.objects import fixed_ip as fixed_ip_obj
 from nova.objects import virtual_interface as vif_obj
 from nova.openstack.common import excutils
@@ -129,6 +130,11 @@ linux_net_opts = [
     cfg.BoolOpt('fake_network',
                 default=False,
                 help='If passed, use fake network devices and addresses'),
+    cfg.BoolOpt('psvm',
+                default=False,
+                help='Enable the Physcial Switch Vlan Manager module to '
+                     'automatically prune VLANs on the switchports'
+                     'This is to be used with VlanManager in multi-host mode'),
     ]
 
 CONF = cfg.CONF
@@ -1392,6 +1398,10 @@ def get_dev(network):
     return _get_interface_driver().get_dev(network)
 
 
+def sync_physical_network():
+    return _get_interface_driver().manage_vlan_on_physical_switch()
+
+
 class LinuxNetInterfaceDriver(object):
     """Abstract class that defines generic network host API
     for for all Linux interface drivers.
@@ -1613,6 +1623,56 @@ class LinuxBridgeInterfaceDriver(LinuxNetInterfaceDriver):
                                                 ('--out-interface %s -j %s'
                                                  % (bridge, drop_action)))
             delete_net_dev(bridge)
+
+    @staticmethod
+    def setup_vlan_on_physical_switch(vlan_num):
+        if not CONF.psvm:
+            return
+        func = 'add_vlan_to_switch'
+        LinuxBridgeInterfaceDriver.manage_vlan_on_physical_switch(func,
+                                                                  vlan_num)
+
+    @staticmethod
+    def teardown_vlan_on_physical_switch(vlan_num):
+        if not CONF.psvm:
+            return
+        func = 'delete_vlan_from_switch'
+        LinuxBridgeInterfaceDriver.manage_vlan_on_physical_switch(func,
+                                                                  vlan_num)
+
+    @staticmethod
+    @utils.synchronized('lock_psvm', external=True)
+    def manage_vlan_on_physical_switch(func=None, vlan_num=None):
+        try:
+            if func is None:
+                func = 'sync_physical_network'
+            elif vlan_num is None:
+                LOG.error(_("Vlan cannot be None"))
+                return
+            if not hasattr(psvm.PhysicalSwitchVlanManager, func):
+                LOG.error(_("switch not provisioned "
+                          " method %s missing??"), func)
+                return
+        except Exception as e:
+                LOG.exception(_("Something went wrong: %s"), e)
+                return
+        try:
+            with psvm.PhysicalSwitchVlanManager() as p:
+                if p is None:
+                    LOG.error(_("Possible HOST name problem. Make sure "
+                              "hypervisor_hostname in compute_nodes "
+                              "table matches the hostname -f on node. "
+                              "Also, make sure /etc/hosts is formatted "
+                              "correctly: <IP> <FQDN> <SHORTNAME>"))
+                    raise exception.PhysicalSwitchVlanManagerError
+                if vlan_num is None:
+                    getattr(p, func)()
+                    return
+                getattr(p, func)(vlan_num)
+        except exception.PhysicalSwitchVlanManagerError as e:
+            LOG.exception(_("PSVM Exception: %s"), e)
+        except Exception as e:
+            LOG.exception(_("PSVM UNKNOWN exception %s"), e)
 
 
 @utils.synchronized('ebtables', external=True)

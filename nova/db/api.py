@@ -1006,7 +1006,116 @@ def network_update(context, network_id, values):
     return IMPL.network_update(context, network_id, values)
 
 
-###############
+###################
+
+
+def switch_create(context, values):
+    """Creates a new physical switch with ip/creds."""
+    return IMPL.switch_create(context, values)
+
+
+def switch_update(context, switch_id, values):
+    """Updates switch information: ip/credentials."""
+    return IMPL.switch_update(context, switch_id, values)
+
+
+def switch_delete(context, switch_id):
+    """Deletes a switch."""
+    return IMPL.switch_delete(context, switch_id)
+
+
+def switch_get_all(context):
+    """Lists all switches."""
+    return IMPL.switch_get_all(context)
+
+
+def switch_get_deleted(context):
+    """Lists all deleted switches."""
+    return IMPL.switch_get_deleted(context)
+
+
+def switch_get(context, switch_id):
+    """Lists a particular switch."""
+    return IMPL.switch_get(context, switch_id)
+
+
+###################
+
+
+def switchport_binding_create(context, values):
+    """Creates a new binding for compute host to switchport."""
+    return IMPL.switchport_binding_create(context, values)
+
+
+def switchport_binding_update(context, switchport_binding_id, values):
+    """Updates switchport binding."""
+    return IMPL.switchport_binding_update(context,
+                                          switchport_binding_id,
+                                          values)
+
+
+def switchport_binding_delete(context, switchport_binding_id):
+    """Deletes a switchport binding."""
+    return IMPL.switchport_binding_delete(context, switchport_binding_id)
+
+
+def switchport_binding_get_all(context):
+    """Lists all switchport bindings."""
+    return IMPL.switchport_binding_get_all(context)
+
+
+def switchport_binding_get_deleted(context):
+    """Lists all deleted switchport bindings."""
+    return IMPL.switchport_binding_get_deleted(context)
+
+
+def switchport_binding_get(context, switchport_binding_id):
+    """Lists a particular switchport binding."""
+    return IMPL.switchport_binding_get(context, switchport_binding_id)
+
+
+###################
+
+
+def switch_cred_create(context, values):
+    """Creates a new binding for vlan, switch, and instance."""
+    return IMPL.switch_cred_create(context, values)
+
+
+def switch_cred_update(context, switch_cred_id, values):
+    """Updates active instance binding."""
+    return IMPL.switch_cred_update(context, switch_cred_id, values)
+
+
+def switch_cred_delete(context, switch_cred_id):
+    """Deletes an active instance binding."""
+    return IMPL.switch_cred_delete(context, switch_cred_id)
+
+
+def switch_cred_get_all(context):
+    """Lists all active instance bindings."""
+    return IMPL.switch_cred_get_all(context)
+
+
+def switch_cred_get_deleted(context):
+    """Lists all deleted active instance bindings."""
+    return IMPL.switch_cred_get_deleted(context)
+
+
+def switch_cred_get(context, switch_cred_id):
+    """Lists a particular active instance binding."""
+    return IMPL.switch_cred_get(context, switch_cred_id)
+
+
+###################
+
+
+def switchport_bind_get_by_host(context, hostname):
+    """Gets switchport binding by instance."""
+    return IMPL.switchport_bind_get_by_host(context, hostname)
+
+
+###################
 
 
 def quota_create(context, project_id, resource, limit, user_id=None):

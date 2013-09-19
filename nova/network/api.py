@@ -30,6 +30,9 @@ from nova.network import rpcapi as network_rpcapi
 from nova.objects import fixed_ip as fixed_ip_obj
 from nova.objects import instance as instance_obj
 from nova.objects import instance_info_cache as info_cache_obj
+from nova.objects import psvm as psvm_obj
+from nova.objects import psvmcred as psvmcred_obj
+from nova.objects import psvmpbind as psvmpbind_obj
 from nova.openstack.common import excutils
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import lockutils
@@ -594,3 +597,131 @@ class API(base.Base):
             args['host'] = migration['dest_compute']
 
         self.network_rpcapi.migrate_instance_finish(context, **args)
+
+    @wrap_check_policy
+    def create_psvm(self, context, ip, switch_cred_id):
+        """Creates the model for the psvm."""
+
+        psvm = psvm_obj.Psvm()
+        psvm.create(context, ip, switch_cred_id)
+
+        return self._reformat_psvm_info(psvm)
+
+    def get_psvm(self, context, psvm_id):
+        """Get an psvm by id."""
+        psvm = psvm_obj.Psvm.get_by_id(context, psvm_id)
+        return self._reformat_psvm_info(psvm)
+
+    def get_psvm_list(self, context):
+        """Get all the psvms."""
+        psvms = psvm_obj.PsvmList.get_all(context)
+        return [self._reformat_psvm_info(psvm) for psvm in psvms]
+
+    @wrap_check_policy
+    def update_psvm(self, context, psvm_id, values):
+        """Update the properties of an psvm."""
+        psvm = psvm_obj.Psvm.get_by_id(context, psvm_id)
+        if 'ip' in values:
+            psvm.ip = values.pop('ip')
+        if 'switch_cred_id' in values:
+            psvm.switch_cred_id = values.pop('switch_cred_id')
+        psvm.save()
+        return self._reformat_psvm_info(psvm)
+
+    @wrap_check_policy
+    def delete_psvm(self, context, psvm_id):
+        """Deletes the psvm."""
+        psvm = psvm_obj.Psvm.get_by_id(context, psvm_id)
+        psvm.destroy()
+
+    def _reformat_psvm_info(self, psvm):
+        """Builds a dictionary with psvm info."""
+        return dict(psvm.iteritems())
+
+    @wrap_check_policy
+    def create_psvmcred(self, context, user_name, password):
+        """Creates the model for the psvmcred."""
+
+        psvmcred = psvmcred_obj.Psvmcred()
+        psvmcred.create(context, user_name, password)
+
+        psvmcred = self._reformat_psvmcred_info(psvmcred)
+        return psvmcred
+
+    def get_psvmcred(self, context, psvmcred_id):
+        """Get an psvmcred by id."""
+        psvmcred = psvmcred_obj.Psvmcred.get_by_id(context, psvmcred_id)
+        return self._reformat_psvmcred_info(psvmcred)
+
+    def get_psvmcred_list(self, context):
+        """Get all the psvmcreds."""
+        psvmcreds = psvmcred_obj.PsvmcredList.get_all(context)
+        return [self._reformat_psvmcred_info(psvmcred)
+                for psvmcred in psvmcreds]
+
+    @wrap_check_policy
+    def update_psvmcred(self, context, psvmcred_id, values):
+        """Update the properties of an psvmcred."""
+        psvmcred = psvmcred_obj.Psvmcred.get_by_id(context, psvmcred_id)
+        if 'user_name' in values:
+            psvmcred.user_name = values.pop('user_name')
+        if 'password' in values:
+            psvmcred.password = values.pop('password')
+        psvmcred.save()
+        return self._reformat_psvmcred_info(psvmcred)
+
+    @wrap_check_policy
+    def delete_psvmcred(self, context, psvmcred_id):
+        """Deletes the psvmcred."""
+        psvmcred = psvmcred_obj.Psvmcred.get_by_id(context, psvmcred_id)
+        psvmcred.destroy()
+
+    def _reformat_psvmcred_info(self, psvmcred):
+        """Builds a dictionary with psvmcred information."""
+        return dict(psvmcred.iteritems())
+
+    @wrap_check_policy
+    def create_psvmpbind(self, context,
+                         switch_id, compute_node_id,
+                         switch_port):
+        """Creates the model for the psvmpbind."""
+        psvmpbind = psvmpbind_obj.Psvmpbind()
+        psvmpbind.create(context,
+                         switch_id, compute_node_id,
+                         switch_port)
+
+        return self._reformat_psvmpbind_info(psvmpbind)
+
+    def get_psvmpbind(self, context, psvmpbind_id):
+        """Get an psvmpbind by id."""
+        psvmpbind = psvmpbind_obj.Psvmpbind.get_by_id(context, psvmpbind_id)
+        return self._reformat_psvmpbind_info(psvmpbind)
+
+    def get_psvmpbind_list(self, context):
+        """Get all the psvmpbinds."""
+        psvmpbinds = psvmpbind_obj.PsvmpbindList.get_all(context)
+        return [self._reformat_psvmpbind_info(psvmpbind)
+                for psvmpbind in psvmpbinds]
+
+    @wrap_check_policy
+    def update_psvmpbind(self, context, psvmpbind_id, values):
+        """Update the properties of an psvmpbind."""
+        psvmpbind = psvmpbind_obj.Psvmpbind.get_by_id(context, psvmpbind_id)
+        if 'switch_id' in values:
+            psvmpbind.switch_id = values.pop('switch_id')
+        if 'compute_node_id' in values:
+            psvmpbind.compute_node_id = values.pop('compute_node_id')
+        if 'switch_port' in values:
+            psvmpbind.switch_port = values.pop('switch_port')
+        psvmpbind.save()
+        return self._reformat_psvmpbind_info(psvmpbind)
+
+    @wrap_check_policy
+    def delete_psvmpbind(self, context, psvmpbind_id):
+        """Deletes the psvmpbind."""
+        psvmpbind = psvmpbind_obj.Psvmpbind.get_by_id(context, psvmpbind_id)
+        psvmpbind.destroy()
+
+    def _reformat_psvmpbind_info(self, psvmpbind):
+        """Builds a dictionary with psvmpbind props, metadata and hosts."""
+        return dict(psvmpbind.iteritems())

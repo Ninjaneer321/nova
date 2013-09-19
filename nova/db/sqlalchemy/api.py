@@ -2757,6 +2757,275 @@ def network_update(context, network_id, values):
 ###################
 
 
+@require_admin_context
+def switch_create(context, values):
+    switch_ref = models.PSVMSwitch()
+
+    for (key, value) in values.iteritems():
+        switch_ref[key] = value
+    try:
+        session = get_session()
+        with session.begin():
+            switch_ref.save(session=session)
+        return switch_ref
+    except IntegrityError:
+        return None
+    except Exception as e:
+        raise db_exc.DBError(e)
+
+
+@require_admin_context
+def switch_update(context, switch_id, values):
+    session = get_session()
+    with session.begin():
+        switch_ref = _switch_get(context, switch_id, session)
+        switch_ref.update(values)
+        try:
+            switch_ref.save(session=session)
+        except db_exc.DBDuplicateEntry:
+            raise
+    return switch_ref
+
+
+@require_admin_context
+def switch_delete(context, switch_id):
+    session = get_session()
+    with session.begin():
+        switch_ref = _switch_get(context, switch_id,
+                                session=session)
+        switch_ref.soft_delete(session=session)
+
+
+@require_admin_context
+def _switch_get(context, switch_id=None, session=None,
+                read_deleted=None):
+    if read_deleted is None:
+        read_deleted = "no"
+    if switch_id:
+        result = model_query(context, models.PSVMSwitch,
+                             session=session,
+                             read_deleted=read_deleted).\
+            filter_by(id=switch_id).first()
+        if not result:
+            raise exception.PSVMSwitchNotFound(id=switch_id)
+        return result
+    else:
+        result = model_query(context, models.PSVMSwitch,
+                             session=session,
+                             read_deleted=read_deleted).all()
+        if not result:
+            raise exception.NoPSVMSwitchesFound()
+        return result
+
+
+@require_admin_context
+def switch_get_all(context):
+    return _switch_get(context, read_deleted="no")
+
+
+@require_admin_context
+def switch_get_deleted(context):
+    return _switch_get(context, read_deleted='only')
+
+
+@require_admin_context
+def switch_get(context, switch_id):
+    return _switch_get(context, switch_id=switch_id,
+                       read_deleted='no')
+
+
+###################
+
+
+@require_admin_context
+def switchport_binding_create(context, values):
+    switchport_binding_ref = models.PSVMSwitchBind()
+
+    for (key, value) in values.iteritems():
+        switchport_binding_ref[key] = value
+    session = get_session()
+    with session.begin():
+        try:
+            switchport_binding_ref.save(session=session)
+        except db_exc.DBDuplicateEntry:
+            raise
+    return switchport_binding_ref
+
+
+@require_admin_context
+def switchport_binding_update(context, switchport_binding_id, values):
+    session = get_session()
+    with session.begin():
+        switchport_binding_ref = _switchport_binding_get(context,
+                                                        switchport_binding_id,
+                                                        session)
+        switchport_binding_ref.update(values)
+        try:
+            switchport_binding_ref.save(session=session)
+        except db_exc.DBDuplicateEntry:
+            raise
+    return switchport_binding_ref
+
+
+@require_admin_context
+def switchport_binding_delete(context, switchport_binding_id):
+    session = get_session()
+    with session.begin():
+        switchport_binding_ref = _switchport_binding_get(context,
+                                                        switchport_binding_id,
+                                                        session=session)
+        switchport_binding_ref.soft_delete(session=session)
+
+
+@require_admin_context
+def _switchport_binding_get(context, switchport_binding_id=None, session=None,
+                            read_deleted=None):
+    if read_deleted is None:
+        read_deleted = "no"
+    if switchport_binding_id:
+        result = model_query(context,
+                             models.PSVMSwitchBind,
+                             session=session,
+                             read_deleted=read_deleted).\
+            filter_by(id=switchport_binding_id).\
+            first()
+        if not result:
+            raise exception.\
+                PSVMSwitchportBindingNotFound(id=switchport_binding_id)
+        return result
+    else:
+        result = model_query(context,
+                             models.PSVMSwitchBind,
+                             session=session,
+                             read_deleted=read_deleted).\
+            all()
+        if not result:
+            raise exception.NoPSVMSwitchportBindingsFound()
+        return result
+
+
+@require_admin_context
+def switchport_binding_get_all(context):
+    return _switchport_binding_get(context, read_deleted="no")
+
+
+@require_admin_context
+def switchport_binding_get_deleted(context):
+    return _switchport_binding_get(context, read_deleted='only')
+
+
+@require_admin_context
+def switchport_binding_get(context, switchport_binding_id):
+    return _switchport_binding_get(context,
+                                   switchport_binding_id=switchport_binding_id,
+                                   read_deleted='no')
+
+
+###################
+
+
+@require_admin_context
+def switch_cred_create(context, values):
+    switch_cred_ref = models.PSVMSwitchCred()
+    for (key, value) in values.iteritems():
+        switch_cred_ref[key] = value
+    session = get_session()
+    with session.begin():
+        try:
+            switch_cred_ref.save(session=session)
+        except db_exc.DBDuplicateEntry:
+            raise
+    return switch_cred_ref
+
+
+@require_admin_context
+def switch_cred_update(context, switch_cred_id, values):
+    session = get_session()
+    with session.begin():
+        switch_cred_ref = _switch_cred_get(context, switch_cred_id, session)
+        switch_cred_ref.update(values)
+        try:
+            switch_cred_ref.save(session=session)
+        except db_exc.DBDuplicateEntry:
+            raise
+    return switch_cred_ref
+
+
+@require_admin_context
+def switch_cred_delete(context, switch_cred_id):
+    session = get_session()
+    with session.begin():
+        switch_cred_ref = _switch_cred_get(context, switch_cred_id,
+                                          session=session)
+        switch_cred_ref.soft_delete(session=session)
+
+
+@require_admin_context
+def _switch_cred_get(context, switch_cred_id=None, session=None,
+                     read_deleted=None):
+    if read_deleted is None:
+        read_deleted = "no"
+    if switch_cred_id:
+        result = model_query(context,
+                             models.PSVMSwitchCred,
+                             session=session,
+                             read_deleted=read_deleted).\
+            filter_by(id=switch_cred_id).\
+            first()
+        if not result:
+            raise exception.PSVMSwitchCredNotFound(id=switch_cred_id)
+        return result
+    else:
+        result = model_query(context,
+                             models.PSVMSwitchCred,
+                             session=session,
+                             read_deleted=read_deleted).\
+            all()
+        if not result:
+            raise exception.NoPSVMSwitchCredsFound()
+        return result
+
+
+@require_admin_context
+def switch_cred_get_all(context):
+    return _switch_cred_get(context, read_deleted="no")
+
+
+@require_admin_context
+def switch_cred_get_deleted(context):
+    return _switch_cred_get(context, read_deleted='only')
+
+
+@require_admin_context
+def switch_cred_get(context, switch_cred_id):
+    return _switch_cred_get(context, switch_cred_id=switch_cred_id,
+                            read_deleted='no')
+
+
+###################
+
+
+@require_admin_context
+def switchport_bind_get_by_host(context, hostname):
+    session = get_session()
+    query = model_query(context,
+                        models.PSVMSwitchBind,
+                        session=session,
+                        read_deleted="no")
+    query = query.\
+        join(models.ComputeNode,
+             models.ComputeNode.id ==
+             models.PSVMSwitchBind.compute_node_id).\
+        filter_by(hypervisor_hostname=hostname).\
+        all()
+    if not query:
+        raise exception.NoPSVMSwitchportBindingsFound()
+    return query
+
+
+###################
+
+
 @require_context
 def quota_get(context, project_id, resource, user_id=None):
     model = models.ProjectUserQuota if user_id else models.Quota

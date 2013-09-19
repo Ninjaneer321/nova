@@ -14,6 +14,7 @@
 #    under the License.
 
 import fixtures
+import random
 import StringIO
 import sys
 
@@ -407,3 +408,184 @@ class ServiceCommandsTestCase(test.TestCase):
 
     def test_service_disable_invalid_params(self):
         self.assertEqual(2, self.commands.disable('nohost', 'noservice'))
+
+
+class PsvmSwitchCredTestCase(test.TestCase):
+    def setUp(self):
+        super(PsvmSwitchCredTestCase, self).setUp()
+        self.commands = manage.SwitchCommands()
+        self.switch_cred_data = {'user_name': 'testUserName',
+                                 'password': 'testPassWord'}
+
+    def test_cred_create(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+
+        switch_cred_from_db = db.switch_cred_get_all(context.
+                                                     get_admin_context())
+
+        for key in self.switch_cred_data:
+            self.assertEqual(switch_cred_from_db[0][key],
+                             self.switch_cred_data[key])
+
+    def test_cred_update(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+
+        self.commands.switch_cred_update(1,
+                                         user_name=self.
+                                         switch_cred_data['user_name'].upper(),
+                                         password=self.
+                                         switch_cred_data['password'].upper())
+
+        switch_cred_from_db = db.switch_cred_get(context.
+                                                 get_admin_context(), 1)
+
+        for key in self.switch_cred_data:
+            self.assertEqual(switch_cred_from_db[key],
+                             self.switch_cred_data[key].upper())
+
+    def test_cred_delete(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+
+        self.commands.switch_cred_delete(1)
+
+        try:
+            db.switch_cred_get(context.get_admin_context(), 1)
+            self.fail("Should have thrown exception.PSVMSwitchCredNotFound")
+        except exception.PSVMSwitchCredNotFound:
+            pass
+
+
+class PsvmSwitchTestCase(test.TestCase):
+    def setUp(self):
+        super(PsvmSwitchTestCase, self).setUp()
+        self.commands = manage.SwitchCommands()
+        self.switch_cred_data = {'user_name': 'testUserName',
+                                 'password': 'testPassWord'}
+        self.switch_ip = '.'.join('%s' % random.randint(0, 255)
+                                  for i in range(4))
+        self.another_switch_ip = '.'.join('%s' % random.randint(0, 255)
+                                          for i in range(4))
+
+    def test_create(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+
+        switch_from_db = db.switch_get(context.get_admin_context(), 1)
+        self.assertEqual(switch_from_db['ip'], self.switch_ip)
+        self.assertEqual(switch_from_db['switch_cred_id'], 1)
+
+    def test_update_ip(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+
+        self.commands.switch_update(1, ip=self.another_switch_ip,
+                                    switch_cred_id=None)
+        switch_from_db = db.switch_get(context.get_admin_context(), 1)
+        self.assertEqual(switch_from_db['ip'], self.another_switch_ip)
+        self.assertEqual(switch_from_db['switch_cred_id'], 1)
+
+    def test_update_cred(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'].upper(),
+                                         password=self.
+                                         switch_cred_data['password'].upper())
+        self.commands.switch_create(self.switch_ip, "1")
+
+        self.commands.switch_update(1, ip=None, switch_cred_id=2)
+        switch_from_db = db.switch_get(context.get_admin_context(), 1)
+        self.assertEqual(switch_from_db['ip'], self.switch_ip)
+        self.assertEqual(switch_from_db['switch_cred_id'], 2)
+
+    def test_delete(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+
+        self.commands.switch_delete(1)
+        try:
+            db.switch_get(context.get_admin_context(), 1)
+            self.fail("Should have thrown exception.PSVMSwitchNotFound")
+        except exception.PSVMSwitchNotFound:
+            pass
+
+
+class PsvmSwitchPortBindTestCase(test.TestCase):
+    def setUp(self):
+        super(PsvmSwitchPortBindTestCase, self).setUp()
+        self.commands = manage.SwitchCommands()
+        self.switch_cred_data = {'user_name': 'testUserName',
+                                 'password': 'testPassWord'}
+        self.switch_ip = '.'.join('%s' % random.randint(0, 255)
+                                  for i in range(4))
+
+    def test_create(self):
+        self.commands.\
+            switch_cred_create(user_name=self.
+                               switch_cred_data['user_name'],
+                               password=self.switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+        self.commands.switchport_bind_create(switch_id=1,
+                                             compute_node_id=1,
+                                             switch_port='po100')
+
+        switch_from_db = db.switchport_binding_get(context.
+                                                   get_admin_context(), 1)
+
+        self.assertEqual(switch_from_db['id'], 1)
+        self.assertEqual(switch_from_db['switch_port'], 'po100')
+
+    def test_update(self):
+        self.commands.\
+            switch_cred_create(user_name=self.
+                               switch_cred_data['user_name'],
+                               password=self.switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+
+        self.commands.switchport_bind_create(switch_id=1,
+                                             compute_node_id=1,
+                                             switch_port='po101')
+        self.commands.switchport_bind_update(id=1, switch_port='po102')
+
+        switch_from_db = db.switchport_binding_get(context.
+                                                   get_admin_context(), 1)
+
+        self.assertEqual(switch_from_db['switch_port'], 'po102')
+
+    def test_delete(self):
+        self.commands.switch_cred_create(user_name=self.
+                                         switch_cred_data['user_name'],
+                                         password=self.
+                                         switch_cred_data['password'])
+        self.commands.switch_create(self.switch_ip, "1")
+        self.commands.switchport_bind_create(switch_id=1,
+                                             compute_node_id=1,
+                                             switch_port='po101')
+
+        self.commands.switchport_bind_delete(1)
+        try:
+            db.switchport_binding_get(context.get_admin_context(), 1)
+            self.fail("Should have thrown exception."
+                      "PSVMSwitchportBindingNotFound")
+        except exception.PSVMSwitchportBindingNotFound:
+            pass

@@ -7191,3 +7191,57 @@ class RetryOnDeadlockTestCase(test.TestCase):
                 raise db_exc.DBDeadlock("fake exception")
             return True
         self.assertTrue(call_api())
+
+
+class PSVMTestCase(test.TestCase, ModelsObjectComparatorMixin):
+
+    """Tests for db.api.switch_* methods."""
+
+    def setUp(self):
+        super(PSVMTestCase, self).setUp()
+        self.ctxt = context.get_admin_context()
+
+    def test_switchport_bind_get_by_host(self):
+        ctxt = context.get_admin_context()
+        scred_ref = db.switch_cred_create(ctxt,
+                                          dict(user_name="testUser",
+                                               password="testPassword"))
+        switch_ref = db.switch_create(ctxt,
+                                      dict(ip='192.193.194.195',
+                                           switch_cred_id=scred_ref['id']))
+
+        dic = {'host': 'dummy', 'binary': 'nova-compute', 'topic': 'compute',
+               'report_count': 0, 'availability_zone': 'dummyzone'}
+        s_ref = db.service_create(ctxt, dic)
+
+        dic = {'service_id': s_ref['id'],
+               'vcpus': 4, 'memory_mb': 7909, 'local_gb': 240,
+               'vcpus_used': 0, 'memory_mb_used': 512, 'local_gb_used': 0,
+               'hypervisor_type': 'QEMU',
+               'hypervisor_version': 1000000,
+               'cpu_info': '{"vendor": "Intel",\
+                             "model": "Westmere",\
+                             "arch": "x86_64"}',
+               'hypervisor_hostname': 'test_openstack',
+               'free_ram_mb': 1024, 'free_disk_gb': 240,
+               'current_workload': 0, 'running_vms': 0,
+               'cpu_info': '', 'disk_available_least': 171,
+               'host_ip': '127.0.0.1',
+               'supported_instances': '',
+               'metrics': '', 'pci_stats': '',
+               'extra_resources': '',
+               'stats': ''}
+        cnode_ref = db.compute_node_create(ctxt, dic)
+        spb_ref = db.\
+            switchport_binding_create(ctxt,
+                                      dict(switch_id=switch_ref['id'],
+                                           compute_node_id=cnode_ref['id'],
+                                           switch_port='po101'))
+        sp_bind_gbh_ref = \
+            db.switchport_bind_get_by_host(ctxt,
+                                           dic['hypervisor_hostname'])
+
+        self.assertEqual(sp_bind_gbh_ref[0]['switch_id'],
+                         switch_ref['id'])
+        self.assertEqual(sp_bind_gbh_ref[0]['switch_port'],
+                         spb_ref['switch_port'])
